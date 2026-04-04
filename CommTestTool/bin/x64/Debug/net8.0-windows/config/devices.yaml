@@ -1,0 +1,84 @@
+devices:
+- id: device_20260404214442
+  name: 新しい設備
+  connections:
+  - id: conn_20260404214451
+    protocol: opcua
+    endpoint: opc.tcp://localhost:4840
+  commands:
+  - id: command_20260404214457
+    name: 新しいコマンド123
+    parameters:
+    - name: param1
+      label: パラメータ1
+      type: string
+    - name: param2
+      label: パラメータ2
+      type: integer
+    - name: param3
+      label: パラメータ3
+      type: float
+    steps:
+    - action: write
+      description: 新しいステップ
+      connection_id: conn_20260404214451
+      nodes:
+      - node_id: 1
+        parameter: param1
+      - node_id: 2
+        parameter: param2
+      - node_id: 3
+        parameter: param3
+  - id: command_20260404214711
+    name: 新しいコマンド234
+    parameters:
+    - name: param11
+      label: パラメータ11
+      type: string
+    - name: param12
+      label: パラメータ12
+      type: integer
+    - name: param13
+      label: パラメータ13
+      type: float
+    steps:
+    - action: read
+      description: 新しいステップ
+      connection_id: conn_20260404214451
+      timeout_ms_param: param11
+      parse:
+        format: json
+      conditions: []
+      capture: []
+      nodes:
+      - node_id: 11
+      - node_id: 22
+      - node_id: 33
+    - action: poll
+      description: 新しいステップ
+      connection_id: conn_20260404214451
+      interval_ms_param: param11
+      read_timeout_param: param12
+      timeout_param: param13
+      conditions: []
+      capture: []
+      nodes:
+      - node_id: 11
+      - node_id: 22
+      - node_id: 33
+  scenarios:
+  - id: scenario_20260404214916
+    name: 新しいシナリオ1
+    steps:
+    - type: wait
+      description: 2000ms 待機
+      duration_ms: 2000
+  - id: scenario_20260404214922
+    name: 新しいシナリオ2
+    steps:
+    - type: command
+      description: 新しいコマンド123
+      command_id: command_20260404214457
+    - type: command
+      description: 新しいコマンド234
+      command_id: command_20260404214711

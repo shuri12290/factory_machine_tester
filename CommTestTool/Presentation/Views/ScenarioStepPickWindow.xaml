@@ -1,0 +1,25 @@
+<Window x:Class="CommTestTool.Views.ScenarioStepPickWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="コマンドステップ追加" Width="440" Height="340"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="追加" Style="{StaticResource PrimaryBtn}"
+                    Click="OK_Click" Width="80" Margin="0,0,8,0"/>
+            <Button Content="キャンセル" Click="Cancel_Click" Width="80" Padding="8,6"/>
+        </StackPanel>
+        <StackPanel>
+            <Label Content="コマンド"/>
+            <ComboBox x:Name="CommandCombo" DisplayMemberPath="Name" Margin="0,0,0,12"/>
+            <Label Content="エラー時"/>
+            <ComboBox x:Name="OnErrorCombo" Margin="0,0,0,12">
+                <ComboBoxItem Content="stop（中断）" IsSelected="True" Tag="stop"/>
+                <ComboBoxItem Content="next（続行）" Tag="next"/>
+            </ComboBox>
+            <Label Content="説明（任意）"/>
+            <TextBox x:Name="DescBox" Margin="0,0,0,4"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

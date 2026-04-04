@@ -1,0 +1,629 @@
+<Window x:Class="CommTestTool.Views.StepEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ステップ編集" Width="620" Height="700"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResize">
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="保存" Style="{StaticResource PrimaryBtn}"
+                    Click="Save_Click" Width="80" Margin="0,0,8,0"/>
+            <Button Content="キャンセル" Click="Cancel_Click" Width="80" Padding="8,6"/>
+        </StackPanel>
+        <Border x:Name="ErrBanner" DockPanel.Dock="Bottom" Background="#FCE4D6"
+                BorderBrush="{StaticResource ErrorBrush}" BorderThickness="1"
+                CornerRadius="4" Padding="10,6" Margin="0,8,0,0" Visibility="Collapsed">
+            <TextBlock x:Name="ErrText" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" TextWrapping="Wrap"/>
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- 1. ステップの説明 -->
+                <Label Content="ステップの説明（ログ・進捗画面に表示されます）"/>
+                <TextBox x:Name="DescBox" Margin="0,0,0,16"/>
+
+                <!-- 2. 接続口 -->
+                <StackPanel x:Name="ConnSelectPanel">
+                    <Border Background="#F5F5F5" CornerRadius="4" Padding="12,10" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="接続先" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,6"/>
+                            <Label Content="接続口 ※必須"/>
+                            <ComboBox x:Name="ConnCombo" SelectionChanged="ConnCombo_Changed"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+<!-- 3. アクション（接続口選択後に表示） -->
+                <Border x:Name="ActionPanel" Background="#EBF3FB" CornerRadius="4"
+                        Padding="12,10" Margin="0,0,0,12" Visibility="Collapsed">
+                    <StackPanel>
+                        <TextBlock Text="アクション（何をするか）" FontWeight="Bold"
+                                   Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="ActionCombo" SelectionChanged="ActionCombo_Changed"/>
+                        <TextBlock x:Name="ActionHint" FontSize="12" Margin="0,6,0,0"
+                                   Foreground="{StaticResource SecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 未実装プロトコル通知 -->
+                <Border x:Name="StubNotice" Background="#FFF2CC" BorderBrush="#ED7D31"
+                        BorderThickness="1" CornerRadius="4" Padding="10,8" Margin="0,0,0,12"
+                        Visibility="Collapsed">
+                    <TextBlock x:Name="StubNoticeText" FontSize="12" TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- ══ wait ══ -->
+                <StackPanel x:Name="WaitPanel" Visibility="Collapsed">
+                    <Border Background="#F5F5F5" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="待機設定" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,6"/>
+                            <Label Content="待機時間のパラメータ名 ※必須"/>
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="DurationBox" Grid.Column="0"/>
+                                <ComboBox x:Name="DurationParamCombo" Grid.Column="2" Width="160"
+                                          SelectionChanged="DurationParamCombo_Changed"
+                                          ToolTip="パラメータ一覧から選択"/>
+                            </Grid>
+                            <TextBlock Text="例: duration_ms（実行時にms単位で入力）"
+                                       FontSize="11" Foreground="{StaticResource SubBrush}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ poll ══ -->
+                <StackPanel x:Name="PollPanel" Visibility="Collapsed">
+                    <Border Background="#F5F5F5" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="ポーリング設定" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,6"/>
+                            <Label Content="接続口 ※必須（pollは別途選択）"/>
+                            <ComboBox x:Name="PollConnCombo" SelectionChanged="PollConnCombo_Changed" Margin="0,0,0,8"/>
+                            <Label Content="ノードID / アドレス ※必須"/>
+                            <ItemsControl x:Name="PollNodeList" Margin="0,0,0,4">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="8"/>
+                                                <ColumnDefinition Width="28"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding NodeId, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="例: ns=2;s=MachineStatus"/>
+                                            <Button Grid.Column="2" Content="×" Padding="4,2"
+                                                    Tag="{Binding}"
+                                                    Click="PollNodeRemove_Click"
+                                                    ToolTip="この行を削除"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Content="＋ ノードを追加" HorizontalAlignment="Left"
+                                    Click="PollNodeAdd_Click" Padding="8,4" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="PollTargetHint" FontSize="11"
+                                       Foreground="{StaticResource SubBrush}" Margin="0,0,0,4"/>
+                            <TextBlock FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,0,0,8" TextWrapping="Wrap">
+                                <Run Text="複数行指定すると OPC-UA の ReadNodes で一括取得（1往復）します。"/>
+                            </TextBlock>
+                            <Border Background="#DEEAF1" CornerRadius="3" Padding="8,6" Margin="0,0,0,8">
+                                <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource PrimaryBrush}">
+                                    <Run FontWeight="Bold" Text="💡 "/>
+                                    <Run Text="以下はパラメータ変数名を指定します。実行時に値を入力します。"/>
+                                </TextBlock>
+                            </Border>
+                            <Label Content="ポーリング間隔のパラメータ名 ※必須"/>
+                            <Grid Margin="0,0,0,4"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="PollIntervalBox" Grid.Column="0"/>
+                                <ComboBox x:Name="PollIntervalParamCombo" Grid.Column="2" Width="160" SelectionChanged="PollIntervalParamCombo_Changed" ToolTip="パラメータ一覧から選択"/>
+                            </Grid>
+                            <TextBlock Text="例: interval_ms" FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,0,0,8"/>
+                            <Label Content="通信タイムアウトのパラメータ名 ※必須"/>
+                            <Grid Margin="0,0,0,4"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="PollReadTimeoutBox" Grid.Column="0"/>
+                                <ComboBox x:Name="PollReadTimeoutParamCombo" Grid.Column="2" Width="160" SelectionChanged="PollReadTimeoutParamCombo_Changed" ToolTip="パラメータ一覧から選択"/>
+                            </Grid>
+                            <TextBlock Text="例: read_timeout_ms" FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,0,0,8"/>
+                            <Label Content="条件タイムアウトのパラメータ名 ※必須"/>
+                            <Grid Margin="0,0,0,4"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="PollTimeoutBox" Grid.Column="0"/>
+                                <ComboBox x:Name="PollTimeoutParamCombo" Grid.Column="2" Width="160" SelectionChanged="PollTimeoutParamCombo_Changed" ToolTip="パラメータ一覧から選択"/>
+                            </Grid>
+                            <TextBlock Text="例: poll_timeout_ms（0=無制限）" FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,0,0,8"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#FFF9E6" BorderBrush="#ED7D31" BorderThickness="1"
+                            CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock FontWeight="Bold" Foreground="#833C00" Margin="0,0,0,4">
+                                <Run Text="達成条件（任意）"/>
+                                <Run Text="　全条件AND判定" FontSize="11"/>
+                            </TextBlock>
+                            <ItemsControl x:Name="PollCondList" Margin="0,4,0,6">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="110"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="*"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="28"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding Field, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="TCP/MQTT: JSONキー名 / OPC-UA単一: value / OPC-UA複数: ノードID文字列 / MTConnect: タグ名 / SLMP・FOCAS2: value"/>
+                                            <ComboBox Grid.Column="2" SelectedValue="{Binding Operator}" SelectedValuePath="Tag">
+                                                <ComboBoxItem Content="＝ 等しい"       Tag="equals"/>
+                                                <ComboBoxItem Content="≠ 等しくない"    Tag="not_equals"/>
+                                                <ComboBoxItem Content="含む"             Tag="contains"/>
+                                                <ComboBoxItem Content="bit ON チェック" Tag="bit_check"/>
+                                            </ComboBox>
+                                            <TextBox Grid.Column="4" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="比較する値"/>
+                                            <Button Grid.Column="6" Content="✕" Padding="4,2" Click="RemovePollCond_Click" Tag="{Binding}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Content="＋ 条件を追加" Click="AddPollCond_Click"
+                                    Style="{StaticResource SmallBtn}" HorizontalAlignment="Left"/>
+                            <TextBlock Margin="0,6,0,0" FontSize="11" Foreground="#833C00" TextWrapping="Wrap">
+                                <Run FontWeight="Bold" Text="【フィールド名（プロトコル別）】"/>
+                                <Run Text=" TCP/MQTT: JSONキー名　OPC-UA単一: value　OPC-UA複数: ノードID文字列　MTConnect: タグ名　SLMP/FOCAS2: value"/>
+                                <LineBreak/>
+                                <Run Text="bit ONチェック: フィールド名空欄・値にビット位置（0始まり）"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#F0F0F0" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="値の変数化（任意）" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,4"/>
+                            <ItemsControl x:Name="PollCapList" Margin="0,4,0,6">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="16"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="*"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="130"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="28"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding Field, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="TCP/MQTT: JSONキー名 / OPC-UA単一: value / OPC-UA複数: ノードID文字列 / MTConnect: タグ名 / SLMP・FOCAS2: value"/>
+                                            <TextBlock Grid.Column="2" Text="→" VerticalAlignment="Center"
+                                                       HorizontalAlignment="Center" Foreground="{StaticResource SubBrush}"/>
+                                            <TextBox Grid.Column="4" Text="{Binding As, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="変数名（パラメータ名と同じにするとそのパラメータに値が入る）"/>
+                                            <ComboBox Grid.Column="6"
+                                                      ItemsSource="{Binding ParamOptions}"
+                                                      Tag="{Binding}"
+                                                      SelectionChanged="PollCapAsCombo_Changed"
+                                                      ToolTip="パラメータ一覧から選択"/>
+                                            <Button Grid.Column="8" Content="✕" Padding="4,2" Click="RemovePollCap_Click" Tag="{Binding}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Content="＋ 変数化を追加" Click="AddPollCap_Click"
+                                    Style="{StaticResource SmallBtn}" HorizontalAlignment="Left"/>
+                            <TextBlock Margin="0,6,0,0" FontSize="11" Foreground="{StaticResource SubBrush}" TextWrapping="Wrap">
+                                <Run FontWeight="Bold" Text="【フィールド名（プロトコル別）】"/>
+                                <Run Text=" TCP/MQTT: JSONキー　OPC-UA単一: value　OPC-UA複数: ノードID文字列　MTConnect: タグ名　SLMP/FOCAS2: value"/>
+                                <LineBreak/>
+                                <Run Text="変数名をパラメータ名と同じにすると、そのパラメータに読み取り値が入ります。"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ OPC-UA write ══ -->
+                <StackPanel x:Name="OpcWritePanel" Visibility="Collapsed">
+                    <Border Background="#E2EFDA" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="OPC-UA 書き込み設定" FontWeight="Bold" Foreground="#375623" Margin="0,0,0,6"/>
+                            <!-- ノードID / パラメータ名 の動的リスト -->
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="28"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="ノードID" FontSize="11" Foreground="{StaticResource SubBrush}"/>
+                                <TextBlock Grid.Column="2" Text="パラメータ名" FontSize="11" Foreground="{StaticResource SubBrush}"/>
+                                <TextBlock Grid.Column="4" Text="一覧から選択" FontSize="11" Foreground="{StaticResource SubBrush}"/>
+                            </Grid>
+                            <ItemsControl x:Name="OpcWriteNodeList" Margin="0,0,0,4">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="8"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="8"/>
+                                                <ColumnDefinition Width="140"/>
+                                                <ColumnDefinition Width="8"/>
+                                                <ColumnDefinition Width="28"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding NodeId, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="例: ns=2;s=ProgramNo"/>
+                                            <TextBox Grid.Column="2" Text="{Binding ParamName, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="パラメータ変数名"/>
+                                            <ComboBox Grid.Column="4"
+                                                      ItemsSource="{Binding ParamOptions}"
+                                                      Tag="{Binding}"
+                                                      SelectionChanged="OpcWriteParamRow_Changed"
+                                                      ToolTip="パラメータ一覧から選択"/>
+                                            <Button Grid.Column="6" Content="×" Padding="4,2"
+                                                    Tag="{Binding}"
+                                                    Click="OpcWriteNodeRemove_Click"
+                                                    ToolTip="この行を削除"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Content="＋ ノードを追加" HorizontalAlignment="Left"
+                                    Click="OpcWriteNodeAdd_Click" Padding="8,4" Margin="0,0,0,4"/>
+                            <TextBlock FontSize="11" Foreground="{StaticResource SubBrush}" TextWrapping="Wrap">
+                                <Run Text="1行 = 1ノードへの書き込み。複数行指定すると OPC-UA の WriteNodes で一括書き込み（1往復）します。"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ SLMP write ══ -->
+                <StackPanel x:Name="SlmpWritePanel" Visibility="Collapsed">
+                    <Border Background="#E2EFDA" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="SLMP 書き込み設定" FontWeight="Bold" Foreground="#375623" Margin="0,0,0,6"/>
+                            <Label Content="アドレス ※必須"/>
+                            <TextBox x:Name="SlmpWriteAddrBox" Margin="0,0,0,4"/>
+                            <TextBlock Text="例: D100（データレジスタ）/ W200（リンクレジスタ）"
+                                       FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,0,0,8"/>
+                            <Label Content="書き込む値のパラメータ名 ※必須"/>
+                            <Grid Margin="0,0,0,4"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="SlmpWriteValueBox" Grid.Column="0"/>
+                                <ComboBox x:Name="SlmpWriteParamCombo" Grid.Column="2" Width="160" SelectionChanged="SlmpWriteParamCombo_Changed" ToolTip="パラメータ一覧から選択"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ TCP/MQTT send ══ -->
+                <StackPanel x:Name="TcpSendPanel" Visibility="Collapsed">
+                    <Border Background="#E2EFDA" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="送信マッピング" FontWeight="Bold" Foreground="#375623" Margin="0,0,0,6"/>
+                            <TextBlock FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,0,0,8" TextWrapping="Wrap"
+                                       Text="キー名: パラメータ変数名 で1行ずつ入力&#10;例:  command: command_param&#10;　　work_id: work_id_param&#10;左辺=送信JSONのキー名、右辺=パラメータ変数名"/>
+                            <TextBox x:Name="SendPayloadBox" AcceptsReturn="True" Height="80"
+                                     FontFamily="Courier New" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ OPC-UA read ══ -->
+                <StackPanel x:Name="OpcReadPanel" Visibility="Collapsed">
+                    <Border Background="#DEEAF1" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="OPC-UA 読み取り設定" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,6"/>
+                            <!-- ノードID の動的リスト -->
+                            <TextBlock Text="ノードID" FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,0,0,4"/>
+                            <ItemsControl x:Name="OpcReadNodeList" Margin="0,0,0,4">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="8"/>
+                                                <ColumnDefinition Width="28"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding NodeId, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="例: ns=2;s=MachineStatus"/>
+                                            <Button Grid.Column="2" Content="×" Padding="4,2"
+                                                    Tag="{Binding}"
+                                                    Click="OpcReadNodeRemove_Click"
+                                                    ToolTip="この行を削除"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Content="＋ ノードIDを追加" HorizontalAlignment="Left"
+                                    Click="OpcReadNodeAdd_Click" Padding="8,4" Margin="0,0,0,4"/>
+                            <TextBlock FontSize="11" Foreground="{StaticResource SubBrush}" TextWrapping="Wrap">
+                                <Run Text="1行 = 1ノードの読み取り。複数行指定すると OPC-UA の ReadNodes で一括取得（1往復）します。"/>
+                                <LineBreak/>
+                                <Run Text="単一ノード → field に value を指定。複数ノード → field にノードID文字列（例: ns=2;s=Status）を指定。"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ MTConnect read ══ -->
+                <StackPanel x:Name="MtcReadPanel" Visibility="Collapsed">
+                    <Border Background="#DEEAF1" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="MTConnect 読み取り設定" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,6"/>
+                            <Label Content="パス"/>
+                            <TextBox x:Name="MtcPathBox" Margin="0,0,0,4"/>
+                            <TextBlock Text="例: current" FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,0,0,8"/>
+                            <Label Content="XPath"/>
+                            <TextBox x:Name="MtcXPathBox"/>
+                            <TextBlock Text="例: //DeviceStatus" FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ FOCAS2 read ══ -->
+                <StackPanel x:Name="FocasReadPanel" Visibility="Collapsed">
+                    <Border Background="#EBF3FB" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="FOCAS2 読み取り設定" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,8"/>
+
+                            <!-- 読み取り種別コンボ -->
+                            <Label Content="読み取り種別 ※必須"/>
+                            <ComboBox x:Name="FocasReadTypeCombo"
+                                      SelectionChanged="FocasReadTypeCombo_Changed"
+                                      Margin="0,0,0,8">
+                                <ComboBoxItem Content="status"      Tag="status"      ToolTip="稼働状態（run/mode/alarm/emergency）"/>
+                                <ComboBoxItem Content="alarm"       Tag="alarm"       ToolTip="アラーム情報"/>
+                                <ComboBoxItem Content="opmsg"       Tag="opmsg"       ToolTip="オペレーターメッセージ"/>
+                                <ComboBoxItem Content="program"     Tag="program"     ToolTip="実行中プログラム番号"/>
+                                <ComboBoxItem Content="exeprgname"  Tag="exeprgname"  ToolTip="実行中プログラム名"/>
+                                <ComboBoxItem Content="position"    Tag="position"    ToolTip="現在位置（絶対/機械/相対）"/>
+                                <ComboBoxItem Content="feedrate"    Tag="feedrate"    ToolTip="実際の送り速度 (F)"/>
+                                <ComboBoxItem Content="spindle"     Tag="spindle"     ToolTip="スピンドル速度 (S)"/>
+                                <ComboBoxItem Content="macro:番号"  Tag="macro"       ToolTip="マクロ変数読み取り（例: macro:100）"/>
+                                <ComboBoxItem Content="param:番号"  Tag="param"       ToolTip="パラメータ読み取り（例: param:6750）"/>
+                                <ComboBoxItem Content="pmc:アドレス" Tag="pmc"        ToolTip="PMCアドレス読み取り（例: pmc:G0）"/>
+                                <ComboBoxItem Content="sysinfo"     Tag="sysinfo"     ToolTip="CNCシステム情報"/>
+                            </ComboBox>
+
+                            <!-- macro:番号 入力欄 -->
+                            <StackPanel x:Name="FocasMacroPanel" Visibility="Collapsed">
+                                <Label Content="マクロ変数番号 ※必須"/>
+                                <TextBox x:Name="FocasMacroNoBox" Margin="0,0,0,4" TextChanged="FocasNoBox_TextChanged"/>
+                                <TextBlock FontSize="11" Foreground="{StaticResource SubBrush}"
+                                           Text="例: 100（#100番のマクロ変数を読み取る）" Margin="0,0,0,8"/>
+                            </StackPanel>
+
+                            <!-- param:番号 入力欄 -->
+                            <StackPanel x:Name="FocasParamPanel" Visibility="Collapsed">
+                                <Label Content="パラメータ番号 ※必須"/>
+                                <TextBox x:Name="FocasParamNoBox" Margin="0,0,0,4" TextChanged="FocasNoBox_TextChanged"/>
+                                <TextBlock FontSize="11" Foreground="{StaticResource SubBrush}"
+                                           Text="例: 6750（パラメータ番号6750を読み取る）" Margin="0,0,0,8"/>
+                            </StackPanel>
+
+                            <!-- pmc:アドレス 入力欄 -->
+                            <StackPanel x:Name="FocasPmcReadPanel" Visibility="Collapsed">
+                                <Label Content="PMCアドレス ※必須"/>
+                                <TextBox x:Name="FocasPmcReadAddrBox" Margin="0,0,0,4" TextChanged="FocasNoBox_TextChanged"/>
+                                <TextBlock FontSize="11" Foreground="{StaticResource SubBrush}"
+                                           Text="例: G0（Gレジスタ0番地）  D100（Dレジスタ100番地）" Margin="0,0,0,8"/>
+                            </StackPanel>
+
+                            <!-- 隠しフィールド（target文字列を保持） -->
+                            <TextBox x:Name="FocasTargetBox" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ FOCAS2 write ══ -->
+                <StackPanel x:Name="FocasWritePanel" Visibility="Collapsed">
+                    <Border Background="#E2EFDA" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="FOCAS2 書き込み設定" FontWeight="Bold"
+                                       Foreground="#375623" Margin="0,0,0,8"/>
+
+                            <!-- 書き込み種別コンボ -->
+                            <Label Content="書き込み種別 ※必須"/>
+                            <ComboBox x:Name="FocasWriteTypeCombo"
+                                      SelectionChanged="FocasWriteTypeCombo_Changed"
+                                      Margin="0,0,0,8">
+                                <ComboBoxItem Content="macro:番号"   Tag="macro" ToolTip="マクロ変数書き込み"/>
+                                <ComboBoxItem Content="pmc:アドレス" Tag="pmc"   ToolTip="PMCアドレス書き込み"/>
+                            </ComboBox>
+
+                            <!-- macro:番号 入力欄 -->
+                            <StackPanel x:Name="FocasWriteMacroPanel" Visibility="Collapsed">
+                                <Label Content="マクロ変数番号 ※必須"/>
+                                <TextBox x:Name="FocasWriteMacroNoBox" Margin="0,0,0,4" TextChanged="FocasWriteNoBox_TextChanged"/>
+                                <TextBlock FontSize="11" Foreground="#375623"
+                                           Text="例: 100（#100番のマクロ変数に書き込む）" Margin="0,0,0,8"/>
+                            </StackPanel>
+
+                            <!-- pmc:アドレス 入力欄 -->
+                            <StackPanel x:Name="FocasWritePmcPanel" Visibility="Collapsed">
+                                <Label Content="PMCアドレス ※必須"/>
+                                <TextBox x:Name="FocasWritePmcAddrBox" Margin="0,0,0,4" TextChanged="FocasWriteNoBox_TextChanged"/>
+                                <TextBlock FontSize="11" Foreground="#375623"
+                                           Text="例: G0（Gレジスタ0番地）  D100（Dレジスタ100番地）" Margin="0,0,0,8"/>
+                            </StackPanel>
+
+                            <!-- 隠しフィールド -->
+                            <TextBox x:Name="FocasWriteTargetBox" Visibility="Collapsed"/>
+
+                            <!-- 書き込む値（パラメーターから取得） -->
+                            <Label Content="書き込む値 ※必須" Margin="0,4,0,0"/>
+                            <TextBox x:Name="FocasWriteValueBox" Margin="0,0,0,4"/>
+                            <TextBlock FontSize="11" Foreground="{StaticResource SubBrush}"
+                                       Text="マクロ変数: 数値 (例: 1234.5)  /  PMC: 0〜255"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ SLMP read ══ -->
+                <StackPanel x:Name="SlmpReadPanel" Visibility="Collapsed">
+                    <Border Background="#DEEAF1" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="SLMP 読み取り設定" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,6"/>
+                            <Label Content="アドレス ※必須"/>
+                            <TextBox x:Name="SlmpReadAddrBox"/>
+                            <TextBlock Text="例: D101 / W200 / M10"
+                                       FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ TCP/MQTT receive ══ -->
+                <StackPanel x:Name="TcpRecvPanel" Visibility="Collapsed">
+                    <Border Background="#DEEAF1" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="パースフォーマット" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,6"/>
+                            <ComboBox x:Name="ParseCombo" SelectionChanged="ParseCombo_Changed">
+                                <ComboBoxItem Content="plain"/>
+                                <ComboBoxItem Content="json"/>
+                                <ComboBoxItem Content="xml"/>
+                                <ComboBoxItem Content="binary"/>
+                            </ComboBox>
+                            <StackPanel x:Name="XPathPanel" Visibility="Collapsed" Margin="0,4,0,0">
+                                <Label Content="XPath"/>
+                                <TextBox x:Name="XPathBox"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ タイムアウト（receive/read共通）══ -->
+                <StackPanel x:Name="TimeoutPanel" Visibility="Collapsed">
+                    <Border Background="#F5F5F5" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <Label Content="タイムアウトのパラメータ名（省略=接続口デフォルト）"/>
+                            <Grid Margin="0,0,0,4"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="TimeoutBox" Grid.Column="0"/>
+                                <ComboBox x:Name="TimeoutParamCombo" Grid.Column="2" Width="160"
+                                          SelectionChanged="TimeoutParamCombo_Changed" ToolTip="パラメータ一覧から選択"/>
+                            </Grid>
+                            <TextBlock Text="例: timeout_ms（10000=10秒）"
+                                       FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ 受信成功条件（receive/read共通）══ -->
+                <StackPanel x:Name="CondPanel" Visibility="Collapsed">
+                    <Border Background="#FFF9E6" BorderBrush="#ED7D31" BorderThickness="1"
+                            CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock FontWeight="Bold" Foreground="#833C00" Margin="0,0,0,4">
+                                <Run Text="受信成功条件（任意）"/>
+                                <Run Text="　全条件AND判定" FontSize="11"/>
+                            </TextBlock>
+                            <ItemsControl x:Name="CondList" Margin="0,4,0,6">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="110"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="*"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="28"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding Field, UpdateSourceTrigger=PropertyChanged}" ToolTip="TCP/MQTT: JSONキー名 / OPC-UA単一: value / OPC-UA複数: ノードID文字列 / MTConnect: タグ名 / SLMP・FOCAS2: value"/>
+                                            <ComboBox Grid.Column="2" SelectedValue="{Binding Operator}" SelectedValuePath="Tag">
+                                                <ComboBoxItem Content="＝ 等しい"        Tag="equals"/>
+                                                <ComboBoxItem Content="≠ 等しくない"     Tag="not_equals"/>
+                                                <ComboBoxItem Content="含む"              Tag="contains"/>
+                                                <ComboBoxItem Content="bit ON チェック"  Tag="bit_check"/>
+                                            </ComboBox>
+                                            <TextBox Grid.Column="4" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="比較する値"/>
+                                            <Button Grid.Column="6" Content="✕" Padding="4,2" Click="RemoveCond_Click" Tag="{Binding}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Content="＋ 条件を追加" Click="AddCond_Click"
+                                    Style="{StaticResource SmallBtn}" HorizontalAlignment="Left"/>
+                            <TextBlock Margin="0,6,0,0" FontSize="11" Foreground="#833C00" TextWrapping="Wrap">
+                                <Run FontWeight="Bold" Text="【フィールド名の指定方法（プロトコル別）】"/>
+                                <LineBreak/>
+                                <Run Text="TCP / MQTT :  JSONのキー名　例）status、result"/>
+                                <LineBreak/>
+                                <Run Text="OPC-UA（単一）:  value（固定）"/>
+                                <LineBreak/>
+                                <Run Text="OPC-UA（複数）:  ノードID文字列　例）ns=2;s=Status"/>
+                                <LineBreak/>
+                                <Run Text="MTConnect :  XPathで取得したタグ名　例）execution"/>
+                                <LineBreak/>
+                                <Run Text="SLMP / FOCAS2 :  value（固定）"/>
+                                <LineBreak/>
+                                <Run Text="bit ONチェック :  フィールド名空欄・値にビット位置（0始まり）を入力"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ══ 受信値の変数化（receive/read共通）══ -->
+                <StackPanel x:Name="CapturePanel" Visibility="Collapsed">
+                    <Border Background="#F0F0F0" CornerRadius="4" Padding="12,10" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="受信値の変数化（任意）" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,4"/>
+                            <ItemsControl x:Name="CaptureList" Margin="0,4,0,6">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="16"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="*"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="130"/><ColumnDefinition Width="6"/>
+                                                <ColumnDefinition Width="28"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding Field, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="TCP/MQTT: JSONキー名 / OPC-UA単一: value / OPC-UA複数: ノードID文字列 / MTConnect: タグ名 / SLMP・FOCAS2: value"/>
+                                            <TextBlock Grid.Column="2" Text="→" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource SubBrush}"/>
+                                            <TextBox Grid.Column="4" Text="{Binding As, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="変数名（パラメータ名と同じにするとそのパラメータに値が入る）"/>
+                                            <ComboBox Grid.Column="6"
+                                                      ItemsSource="{Binding ParamOptions}"
+                                                      Tag="{Binding}"
+                                                      SelectionChanged="CaptureAsCombo_Changed"
+                                                      ToolTip="パラメータ一覧から選択（左の欄に反映されます）"/>
+                                            <Button Grid.Column="8" Content="✕" Padding="4,2" Click="RemoveCapture_Click" Tag="{Binding}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Content="＋ 変数化を追加" Click="AddCapture_Click"
+                                    Style="{StaticResource SmallBtn}" HorizontalAlignment="Left"/>
+                            <TextBlock Margin="0,6,0,0" FontSize="11" Foreground="{StaticResource SubBrush}" TextWrapping="Wrap">
+                                <Run FontWeight="Bold" Text="【フィールド名の指定方法（プロトコル別）】"/>
+                                <LineBreak/>
+                                <Run Text="TCP / MQTT :  JSONのキー名　例）status → machine_status"/>
+                                <LineBreak/>
+                                <Run Text="OPC-UA（単一）:  value（固定）　例）value → program_no"/>
+                                <LineBreak/>
+                                <Run Text="OPC-UA（複数）:  ノードID文字列　例）ns=2;s=Status → machine_status"/>
+                                <LineBreak/>
+                                <Run Text="MTConnect :  XPathで取得したタグ名　例）execution → exec_status"/>
+                                <LineBreak/>
+                                <Run Text="SLMP / FOCAS2 :  value（固定）または JSONキー名　例）value → d100_val"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

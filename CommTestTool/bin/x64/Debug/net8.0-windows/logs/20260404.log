@@ -1,0 +1,36 @@
+22:32:15.772 [Error  ] [device_20260404214442] 監視エラー: 接続失敗: OPC-UA接続失敗: kk
+詳細: Invalid URI: The format of the URI could not be determined.
+  ❌ OPC-UA接続失敗: kk
+詳細: Invalid URI: The format of the URI could not be determined.
+22:32:15.796 [Info   ] [device_20260404214442] 監視停止: conn_20260404214451/11, 22, 33
+22:33:01.153 [Error  ] [device_20260404214442] 監視エラー: 接続失敗: OPC-UA接続失敗: kk
+詳細: Invalid URI: The format of the URI could not be determined.
+  ❌ OPC-UA接続失敗: kk
+詳細: Invalid URI: The format of the URI could not be determined.
+22:33:01.154 [Info   ] [device_20260404214442] 監視停止: conn_20260404214451/11, 22, 33
+22:33:28.440 [Info   ] [device_20260404214442] コマンド開始: 新しいコマンド123
+22:33:28.465 [Error  ] [device_20260404214442] write: 新しいステップ
+  ❌ OPC-UA接続失敗: kk
+詳細: Invalid URI: The format of the URI could not be determined.
+22:33:28.467 [Error  ] [device_20260404214442] コマンド失敗: 新しいコマンド123
+  ❌ OPC-UA接続失敗: kk
+詳細: Invalid URI: The format of the URI could not be determined.
+22:34:59.884 [Error  ] [device_20260404214442] 監視エラー: 接続失敗: OPC-UA接続失敗: opc:tcp://localhost:4840
+詳細: Unsupported transport profile for scheme opc.
+  ❌ OPC-UA接続失敗: opc:tcp://localhost:4840
+詳細: Unsupported transport profile for scheme opc.
+22:34:59.885 [Info   ] [device_20260404214442] 監視停止: conn_20260404214451/11, 22, 33
+22:35:12.258 [Info   ] [device_20260404214442] コマンド開始: 新しいコマンド123
+22:35:12.264 [Error  ] [device_20260404214442] write: 新しいステップ
+  ❌ OPC-UA接続失敗: opc:tcp://localhost:4840
+詳細: Unsupported transport profile for scheme opc.
+22:35:12.265 [Error  ] [device_20260404214442] コマンド失敗: 新しいコマンド123
+  ❌ OPC-UA接続失敗: opc:tcp://localhost:4840
+詳細: Unsupported transport profile for scheme opc.
+22:36:13.939 [Info   ] [device_20260404214442] コマンド開始: 新しいコマンド123
+22:36:18.158 [Error  ] [device_20260404214442] write: 新しいステップ
+  ❌ OPC-UA接続失敗: opc.tcp://localhost:4840
+詳細: Error establishing a connection: BadNotConnected
+22:36:18.160 [Error  ] [device_20260404214442] コマンド失敗: 新しいコマンド123
+  ❌ OPC-UA接続失敗: opc.tcp://localhost:4840
+詳細: Error establishing a connection: BadNotConnected
