@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>CommTestTool</RootNamespace>
+    <AssemblyName>CommTestTool</AssemblyName>
+    <Platforms>x64</Platforms>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- FOCAS2: WIN64定義でFWLIB64.dllを使用（fwlib.csのコンパイル分岐） -->
+    <DefineConstants>$(DefineConstants);WIN64</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- FOCAS2 DLL: ビルド時にbinフォルダへ自動コピー -->
+    <None Include="Focas\fwlib0DN64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Focas\Fwlib0i.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Focas\Fwlib0iB.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm"  Version="8.4.2" />
+    <PackageReference Include="YamlDotNet"             Version="16.3.0" />
+    <PackageReference Include="MQTTnet"                Version="5.1.0.1559" />
+    <PackageReference Include="OpcUaHelper"            Version="2.2.1" />
+  </ItemGroup>
+</Project>

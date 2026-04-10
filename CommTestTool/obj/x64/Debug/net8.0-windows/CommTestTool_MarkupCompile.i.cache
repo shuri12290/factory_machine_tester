@@ -1,0 +1,20 @@
+﻿CommTestTool
+1.0.0.0
+
+winexe
+C#
+.cs
+C:\Users\marchin\Downloads\CommTestToolV2_src_v63 (1)\CommTestToolV2\CommTestTool\obj\x64\Debug\net8.0-windows\
+CommTestTool
+none
+false
+TRACE;WIN64;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
+C:\Users\marchin\Downloads\CommTestToolV2_src_v63 (1)\CommTestToolV2\CommTestTool\App.xaml
+11-686595379
+
+22395194462
+213276130310
+Presentation\Views\CommandDetailView.xaml;Presentation\Views\ConnectionDetailView.xaml;Presentation\Views\ConnectionEditWindow.xaml;Presentation\Views\DeviceDetailView.xaml;Presentation\Views\DeviceListView.xaml;Presentation\Views\ExecutionView.xaml;Presentation\Views\MainWindow.xaml;Presentation\Views\ScenarioDetailView.xaml;Presentation\Views\ScenarioStepPickWindow.xaml;Presentation\Views\StepEditWindow.xaml;Presentation\Views\WaitStepWindow.xaml;
+
+True
+

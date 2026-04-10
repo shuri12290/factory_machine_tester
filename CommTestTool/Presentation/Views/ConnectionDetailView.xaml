@@ -1,0 +1,265 @@
+<UserControl x:Class="CommTestTool.Views.ConnectionDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="16">
+            <TextBlock Text="接続口の詳細" FontSize="14" FontWeight="Bold"
+                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,12"/>
+
+            <!-- 基本情報 -->
+            <Border Background="#EBF3FB" CornerRadius="4" Padding="12" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="基本情報" Style="{StaticResource SectionHead}"/>
+                    <Label Content="接続口ID ※必須"/>
+                    <TextBox Text="{Binding Id, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+                    <TextBlock Text="例: plc_01_opcua（英数字・アンダースコア）"
+                               FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,0,0,8"/>
+                    <Label Content="タイムアウト（ms）省略時: 5000"/>
+                    <TextBox Text="{Binding TimeoutMs, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                    <Label Content="プロトコル ※必須"/>
+                    <ComboBox SelectedValue="{Binding Protocol}" SelectedValuePath="Content" Margin="0,0,0,4">
+                        <ComboBoxItem Content="opcua"/>
+                        <ComboBoxItem Content="mqtt"/>
+                        <ComboBoxItem Content="tcp"/>
+                        <ComboBoxItem Content="mtconnect"/>
+                        <ComboBoxItem Content="focas2"/>
+                        <ComboBoxItem Content="ospapi"/>
+                        <ComboBoxItem Content="slmp"/>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- FOCAS2 説明 -->
+            <Border Background="#E2EFDA" BorderBrush="#375623" BorderThickness="1"
+                    CornerRadius="4" Padding="12,10" Margin="0,0,0,12">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Protocol, Mode=OneWay}" Value="focas2">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel>
+                    <TextBlock FontSize="12" FontWeight="Bold" Foreground="#375623" Margin="0,0,0,6"
+                               Text="ℹ️ FOCAS2（FANUC加工機）の接続設定"/>
+                    <TextBlock FontSize="11" Foreground="#375623" TextWrapping="Wrap">
+                        <Run Text="  ホスト: FANUC加工機のIPアドレス"/>
+                        <LineBreak/>
+                        <Run Text="  ポート: 8193（FOCAS2標準ポート）"/>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- スタブ警告 -->
+            <Border Background="#FFF2CC" BorderBrush="#ED7D31" BorderThickness="1"
+                    CornerRadius="4" Padding="10,6" Margin="0,0,0,12"
+                    Visibility="{Binding IsStub, Mode=OneWay,
+                        Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock FontSize="12" FontWeight="Bold" Foreground="#7F3000" Margin="0,0,0,4"
+                               Text="⚠️ このプロトコルはスタブ実装です"/>
+                    <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="#7F3000">
+                        <Run Text="接続口の登録・設定は可能ですが、実行時にエラーになります。"/>
+                        <LineBreak/>
+                        <Run Text="実装には別途 SDK / DLL の入手が必要です。"/>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- MTConnect 制限説明 -->
+            <Border Background="#E8F4FD" BorderBrush="#2E75B6" BorderThickness="1"
+                    CornerRadius="4" Padding="12,10" Margin="0,0,0,12"
+                    Visibility="{Binding IsMtConnect, Mode=OneWay,
+                        Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock FontSize="12" FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,6"
+                               Text="ℹ️ MTConnect の使用上の制限"/>
+                    <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="#1F4E79">
+                        <Run FontWeight="Bold" Text="【読み取り専用】"/>
+                        <Run Text="MTConnect は設備からデータを収集するための規格です。"/>
+                        <LineBreak/>
+                        <Run Text="このプロトコルでは以下のアクションのみ使用できます："/>
+                    </TextBlock>
+                    <Border Background="White" CornerRadius="3" Padding="8,6" Margin="0,6,0,6">
+                        <StackPanel>
+                            <TextBlock FontSize="11" Foreground="#1F4E79">
+                                <Run Text="✅  " FontWeight="Bold"/><Run Text="read"/>
+                                <Run Text="  — XPath でデータ項目を取得" Foreground="#666666"/>
+                            </TextBlock>
+                            <TextBlock FontSize="11" Foreground="#1F4E79" Margin="0,2,0,0">
+                                <Run Text="✅  " FontWeight="Bold"/><Run Text="poll"/>
+                                <Run Text="  — 条件を満たすまで繰り返し取得" Foreground="#666666"/>
+                            </TextBlock>
+                            <TextBlock FontSize="11" Foreground="#C00000" Margin="0,4,0,0">
+                                <Run Text="❌  "/><Run Text="send / write"/>
+                                <Run Text="  — データ送信・書き込みは不可" Foreground="#666666"/>
+                            </TextBlock>
+                            <TextBlock FontSize="11" Foreground="#C00000" Margin="0,2,0,0">
+                                <Run Text="❌  "/><Run Text="receive"/>
+                                <Run Text="  — プッシュ型受信は不可（ポーリングのみ）" Foreground="#666666"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="#1F4E79">
+                        <Run Text="送信・書き込みが必要な場合は OPC-UA または TCP/IP をご使用ください。"/>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- OPC-UA / MTConnect -->
+            <Border Background="#F5F5F5" CornerRadius="4" Padding="12" Margin="0,0,0,12"
+                    Visibility="{Binding ShowEndpoint, Mode=OneWay,
+                        Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="エンドポイント設定" Style="{StaticResource SectionHead}"/>
+                    <Label Content="エンドポイントURI ※必須"/>
+                    <TextBox Text="{Binding Endpoint, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+                    <TextBlock FontSize="11" Foreground="{StaticResource SubBrush}">
+                        <Run Text="例(OPC-UA): opc.tcp://192.168.1.10:4840"/>
+                        <LineBreak/>
+                        <Run Text="例(MTConnect): http://192.168.1.40:5000"/>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- OPC-UA 認証設定 -->
+            <Border Background="#F5F5F5" CornerRadius="4" Padding="12" Margin="0,0,0,12"
+                    Visibility="{Binding ShowOpcAuth, Mode=OneWay,
+                        Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="認証設定" Style="{StaticResource SectionHead}"/>
+                    <Label Content="認証方式"/>
+                    <ComboBox SelectedValue="{Binding OpcAuthMode}"
+                              SelectedValuePath="Tag" Margin="0,0,0,8">
+                        <ComboBoxItem Content="Anonymous（匿名）" Tag="anonymous"/>
+                        <ComboBoxItem Content="Username / Password" Tag="username"/>
+                        <ComboBoxItem Content="X.509 証明書" Tag="certificate"/>
+                    </ComboBox>
+                    <StackPanel Visibility="{Binding ShowUsernameAuth, Mode=OneWay,
+                                    Converter={StaticResource BoolToVis}}">
+                        <Label Content="ユーザー名 ※必須"/>
+                        <TextBox Text="{Binding OpcUserName, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0,0,0,8"/>
+                        <Label Content="パスワード"/>
+                        <PasswordBox x:Name="OpcPasswordBox" Margin="0,0,0,4"/>
+                        <TextBlock Text="⚠️ パスワードは devices.yaml に平文で保存されます。"
+                                   FontSize="11" Foreground="#C55A11" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding ShowCertAuth, Mode=OneWay,
+                                    Converter={StaticResource BoolToVis}}">
+                        <Label Content="証明書ファイル名 ※必須"/>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding OpcCertFile, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Grid.Column="2" Content="参照..." Padding="8,4"
+                                    Click="BrowseCert_Click"/>
+                        </Grid>
+                        <TextBlock FontSize="11" Foreground="{StaticResource SubBrush}"
+                                   Margin="0,0,0,8" TextWrapping="Wrap">
+                            <Run Text="例: plc_cert.pfx  /  plc_cert.p12"/>
+                            <LineBreak/>
+                            <Run Text="※ アプリフォルダ内の「certs/」フォルダに証明書を配置してください。"/>
+                        </TextBlock>
+                        <Label Content="証明書パスワード（不要な場合は空欄）"/>
+                        <PasswordBox x:Name="OpcCertPasswordBox" Margin="0,0,0,4"/>
+                        <TextBlock Text="⚠️ パスワードは devices.yaml に平文で保存されます。"
+                                   FontSize="11" Foreground="#C55A11" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- MQTT -->
+            <Border Background="#F5F5F5" CornerRadius="4" Padding="12" Margin="0,0,0,12"
+                    Visibility="{Binding ShowMqtt, Mode=OneWay,
+                        Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="MQTT設定" Style="{StaticResource SectionHead}"/>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="120"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <Label Content="ブローカー（IPアドレス）※必須"/>
+                            <TextBox Text="{Binding Broker, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <Label Content="ポート ※必須"/>
+                            <TextBox Text="{Binding MqttPort, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                    </Grid>
+                    <Label Content="送信トピック（PublishTopic）※必須"/>
+                    <TextBox Text="{Binding PublishTopic, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                    <Label Content="受信トピック（SubscribeTopic）※必須"/>
+                    <TextBox Text="{Binding SubscribeTopic, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- TCP / FOCAS2 / OSP-API -->
+            <Border Background="#F5F5F5" CornerRadius="4" Padding="12" Margin="0,0,0,12"
+                    Visibility="{Binding ShowHostPort, Mode=OneWay,
+                        Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="TCP/IP設定" Style="{StaticResource SectionHead}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="120"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <Label Content="ホスト（IPアドレス）※必須"/>
+                            <TextBox Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <Label Content="ポート ※必須"/>
+                            <TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- SLMP -->
+            <Border Background="#F5F5F5" CornerRadius="4" Padding="12" Margin="0,0,0,12"
+                    Visibility="{Binding ShowSlmp, Mode=OneWay,
+                        Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="SLMP設定" Style="{StaticResource SectionHead}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="120"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <Label Content="PLC IPアドレス ※必須"/>
+                            <TextBox Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <Label Content="局番号 ※必須"/>
+                            <TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 適用・キャンセル -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                <Button Content="適用" Style="{StaticResource PrimaryBtn}"
+                        Command="{Binding ApplyCommand}" Width="80" Margin="0,0,8,0"/>
+                <Button Content="キャンセル" Command="{Binding DiscardCommand}"
+                        Width="80" Padding="8,6"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
