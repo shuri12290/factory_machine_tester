@@ -1,0 +1,89 @@
+<Window x:Class="CommTestTool.Views.ConnectionEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="接続口編集" Width="460" Height="440"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="保存" Style="{StaticResource PrimaryBtn}"
+                    Click="Save_Click" Width="80" Margin="0,0,8,0"/>
+            <Button Content="キャンセル" Click="Cancel_Click" Width="80" Padding="8,6"/>
+        </StackPanel>
+
+        <Border x:Name="ErrBanner" DockPanel.Dock="Bottom"
+                Background="#FCE4D6" BorderBrush="{StaticResource ErrorBrush}"
+                BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,8,0,0"
+                Visibility="Collapsed">
+            <TextBlock x:Name="ErrText" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" TextWrapping="Wrap"/>
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Label Content="接続口ID ※必須"/>
+                <TextBox x:Name="IdBox" Margin="0,0,0,4"/>
+                <TextBlock Text="例: okuma_01_opcua（英数字・アンダースコア）"
+                           FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,0,0,8"/>
+
+                <Label Content="プロトコル ※必須"/>
+                <ComboBox x:Name="ProtocolCombo" Margin="0,0,0,12"
+                          SelectionChanged="Protocol_Changed">
+                    <ComboBoxItem Content="opcua"/>
+                    <ComboBoxItem Content="mqtt"/>
+                    <ComboBoxItem Content="tcp"/>
+                    <ComboBoxItem Content="mtconnect"/>
+                    <ComboBoxItem Content="focas2"/>
+                    <ComboBoxItem Content="ospapi"/>
+                    <ComboBoxItem Content="slmp"/>
+                </ComboBox>
+
+                <Label Content="タイムアウト（ms） ※省略時5000"/>
+                <TextBox x:Name="TimeoutBox" Text="5000" Margin="0,0,0,12"/>
+
+                <!-- OPC-UA / MTConnect -->
+                <StackPanel x:Name="EndpointPanel" Visibility="Collapsed">
+                    <Label Content="エンドポイントURI ※必須"/>
+                    <TextBox x:Name="EndpointBox" Margin="0,0,0,4"/>
+                    <TextBlock Text="例(OPC-UA): opc.tcp://192.168.1.10:4840&#10;例(MTConnect): http://192.168.1.40:5000"
+                               FontSize="11" Foreground="{StaticResource SubBrush}" Margin="0,0,0,8"/>
+                </StackPanel>
+
+                <!-- MQTT -->
+                <StackPanel x:Name="MqttPanel" Visibility="Collapsed">
+                    <Label Content="ブローカー（IPアドレス）※必須"/>
+                    <TextBox x:Name="BrokerBox" Margin="0,0,0,4"/>
+                    <Label Content="ポート ※必須"/>
+                    <TextBox x:Name="MqttPortBox" Text="1883" Margin="0,0,0,4"/>
+                    <Label Content="送信トピック（PublishTopic）※必須"/>
+                    <TextBox x:Name="PubTopicBox" Margin="0,0,0,4"/>
+                    <Label Content="受信トピック（SubscribeTopic）※必須"/>
+                    <TextBox x:Name="SubTopicBox" Margin="0,0,0,8"/>
+                </StackPanel>
+
+                <!-- TCP / FOCAS2 / OSP-API -->
+                <StackPanel x:Name="HostPortPanel" Visibility="Collapsed">
+                    <Label Content="ホスト（IPアドレス）※必須"/>
+                    <TextBox x:Name="HostBox" Margin="0,0,0,4"/>
+                    <Label Content="ポート ※必須"/>
+                    <TextBox x:Name="PortBox" Margin="0,0,0,8"/>
+                </StackPanel>
+
+                <!-- SLMP -->
+                <StackPanel x:Name="SlmpPanel" Visibility="Collapsed">
+                    <Label Content="PLC IPアドレス ※必須"/>
+                    <TextBox x:Name="SlmpHostBox" Margin="0,0,0,4"/>
+                    <Label Content="ポート番号（省略時: 5007）"/>
+                    <TextBox x:Name="SlmpPortBox" Margin="0,0,0,8"/>
+                </StackPanel>
+
+                <!-- スタブ警告 -->
+                <Border x:Name="StubWarn" Background="#FFF2CC" BorderBrush="#ED7D31"
+                        BorderThickness="1" CornerRadius="4" Padding="10,6" Visibility="Collapsed">
+                    <TextBlock Text="⚠️ このプロトコルはスタブ実装です。実行時にエラーになります。"
+                               FontSize="12" TextWrapping="Wrap"/>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>
